@@ -1,0 +1,44 @@
+<html>
+	<head>
+		<script>
+			function save_options() {
+				var select = document.getElementById("currency");
+				var baseCurrency = select.children[select.selectedIndex].value;
+				localStorage["base_currency"] = baseCurrency;
+			}
+		</script>
+		<link href='http://fonts.googleapis.com/css?family=Yellowtail' rel='stylesheet' type='text/css'>
+		<link type="text/css" href="css/bootstrap.css" rel="stylesheet" />
+		<script src="js/jquery-1.7.1.min.js"></script>
+	</head>
+	<body>
+		<div class="container">
+
+			<div class="hero-unit">
+				<h1 style="font-family: 'Yellowtail', cursive;">ShopMarks!</h1>
+				<hr>
+				<p>
+					Options
+				</p>
+			</div>
+
+			<div>
+				<table class="table">
+					<tr>
+						<td>Please select your currency</td>
+						<td>
+						<select id="currency">
+							<option value="GBP">GBP</option>
+							<option value="USD">USD</option>
+							<option value="EUR">EUR</option>
+						</select></td>
+					</tr>
+					<tr>
+						<td><a href='#' onclick="save_options()" class='btn btn-success'>Save options</a></td>
+					</tr>
+				</table>
+
+			</div>
+		</div>
+	</body>
+</html>

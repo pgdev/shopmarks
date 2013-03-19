@@ -1,0 +1,168 @@
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-29532783-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+<script src="js/jquery-1.7.1.min.js"></script>
+<script src="js/money.js"></script>
+<script>
+	! function(d, s, id) {
+		var js, fjs = d.getElementsByTagName(s)[0];
+		if(!d.getElementById(id)) {
+			js = d.createElement(s);
+			js.id = id;
+			js.src = "//platform.twitter.com/widgets.js";
+			fjs.parentNode.insertBefore(js, fjs);
+		}
+	}(document, "script", "twitter-wjs"); 
+</script>
+<script type="text/javascript">
+	$.getJSON('http://openexchangerates.org/latest.json', function(data) {
+		if( typeof fx !== "undefined" && fx.rates) {
+			fx.rates = data.rates;
+			fx.base = data.base;
+		} else {
+			var fxSetup = {
+				rates : data.rates,
+				base : data.base
+			}
+		}
+	});
+
+	if(!localStorage.checkins) {
+		localStorage.checkins = JSON.stringify([]);
+	}
+
+	if(!localStorage.base_currency) {
+		localStorage.base_currency = JSON.stringify([]);
+		localStorage["base_currency"] = "GBP";
+	}
+
+	function test() {
+		chrome.tabs.create({
+			"url" : "Content.html",
+			"selected" : true
+		}, function(tab) {
+
+		});
+	}
+
+	function RandomString(length) {
+		var chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz'.split('');
+
+		if(!length) {
+			length = Math.floor(Math.random() * chars.length);
+		}
+
+		var str = '';
+		for(var i = 0; i < length; i++) {
+			str += chars[Math.floor(Math.random() * chars.length)];
+		}
+		return str;
+	}
+
+	function CheckCurrency(str) {
+		var strStripped = str.toString().substring(1);
+		
+		if (strStripped.indexOf(",") != -1) {
+			strStripped = strStripped.replace(",", "");
+		}
+
+		if(localStorage["base_currency"] == "GBP") {
+			if(str.substring(0, 1) === "\u00A3") {
+				return parseFloat(fx.convert(parseFloat(strStripped).toFixed(2), {
+					from : "GBP",
+					to : "GBP"
+				})).toFixed(2);
+			} else if(str.substring(0, 1) === "\u0024") {
+				return parseFloat(fx.convert(parseFloat(strStripped).toFixed(2), {
+					from : "USD",
+					to : "GBP"
+				})).toFixed(2);
+			} else if(str.substring(0, 1) === "\u20AC") {
+				return parseFloat(fx.convert(parseFloat(strStripped).toFixed(2), {
+					from : "EUR",
+					to : "GBP"
+				})).toFixed(2);
+			} else {
+				return "0.00";
+			}
+		}
+
+		if(localStorage["base_currency"] == "USD") {
+			if(str.substring(0, 1) === "\u00A3") {
+				return parseFloat(fx.convert(parseFloat(strStripped).toFixed(2), {
+					from : "GBP",
+					to : "USD"
+				})).toFixed(2);
+			} else if(str.substring(0, 1) === "\u0024") {
+				return parseFloat(fx.convert(parseFloat(strStripped).toFixed(2), {
+					from : "USD",
+					to : "USD"
+				})).toFixed(2);
+			} else if(str.substring(0, 1) === "\u20AC") {
+				return parseFloat(fx.convert(parseFloat(strStripped).toFixed(2), {
+					from : "EUR",
+					to : "USD"
+				})).toFixed(2);
+			} else {
+				return "0.00";
+			}
+		}
+
+		if(localStorage["base_currency"] == "EUR") {
+			if(str.substring(0, 1) === "\u00A3") {
+				return parseFloat(fx.convert(parseFloat(strStripped).toFixed(2), {
+					from : "GBP",
+					to : "EUR"
+				})).toFixed(2);
+			} else if(str.substring(0, 1) === "\u0024") {
+				return parseFloat(fx.convert(parseFloat(strStripped).toFixed(2), {
+					from : "USD",
+					to : "EUR"
+				})).toFixed(2);
+			} else if(str.substring(0, 1) === "\u20AC") {
+				return parseFloat(fx.convert(parseFloat(strStripped).toFixed(2), {
+					from : "EUR",
+					to : "EUR"
+				})).toFixed(2);
+			} else {
+				return "0.00";
+			}
+		}
+	}
+
+
+	chrome.contextMenus.create({
+		"title" : "Add to basket",
+		"contexts" : ["all"],
+		"onclick" : function(info, tab) {
+
+			var checkins = JSON.parse(localStorage["checkins"]);
+			checkins.push({
+				"id" : RandomString(8),
+				"favicon" : tab.favIconUrl,
+				"title" : tab.title,
+				"url" : tab.url,
+				"price" : CheckCurrency(info.selectionText)
+			});
+
+			localStorage["checkins"] = JSON.stringify(checkins);
+		}
+	}, function() {
+
+	});
+
+	chrome.browserAction.onClicked.addListener(test);
+
+
+</script>

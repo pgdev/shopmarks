@@ -1,0 +1,213 @@
+<div id="fb-root"></div>
+<div class="left" style="float: left; width: 200px; padding: 10px; text-align: center;">
+	<span>Like ShopMarks!? Please donate!</span>
+	<form action="https://www.paypal.com/cgi-bin/webscr" method="post">
+		<input type="hidden" name="cmd" value="_s-xclick">
+		<input type="hidden" name="hosted_button_id" value="656CEWXWLX536">
+		<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+		<img alt="" border="0" src="https://www.paypalobjects.com/en_GB/i/scr/pixel.gif" width="1" height="1">
+	</form>
+</div>
+<div class="container">
+
+	<div class="hero-unit">
+		<h1 style="font-family: 'Yellowtail', cursive;">ShopMarks!</h1>
+		<hr>
+		<p>
+			Shopping bookmarks!
+			<br>
+			<br>
+			To use ShopMarks!, go to the web address of an item you want to put in the ShopMarks! basket, select the price (including the currency sign), right click to bring up the menu and click "Add to basket" to save the item to ShopMarks!
+		</p>
+	</div>
+
+	<div>
+		<table id="dvList" class="table table-striped">
+			<tbody>
+
+			</tbody>
+		</table>
+	</div>
+
+	<div style="float: right;">
+		<table class="table" style="float: right;">
+			<tr>
+				<td><span>Current total: <b id="dvTotal"></b></span></td>
+				<td><span><a href='#' onclick="BuyAll();" class='btn btn-success'><i class="icon-shopping-cart icon-white"></i> Buy all the things! (opens in tabs)</a></span></td>
+			</tr>
+		</table>
+	</div>
+
+	<div>
+		<a href="#" id="btnDeleteAll" onclick="DeleteSelected();" class="btn btn-danger" style="display: none;">Delete Selected</a>
+	</div>
+
+</div>
+
+<link href='http://fonts.googleapis.com/css?family=Yellowtail' rel='stylesheet' type='text/css'>
+<link type="text/css" href="css/bootstrap.css" rel="stylesheet" />
+
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-29532783-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+<script type="text/javascript">
+function recordOutboundLink(link, category, action) {
+  try {
+    var pageTracker=_gat._getTracker("UA-29532783-1");
+    pageTracker._trackEvent(category, action);
+    setTimeout('document.location = "' + link.href + '"', 100)
+  }catch(err){}
+}
+</script>
+
+<script src="js/jquery-1.7.1.min.js"></script>
+<script type="text/javascript">
+	var totalPrice = 0;
+
+	var allCheckins = JSON.parse(localStorage["checkins"]);
+
+	GenerateRows();
+
+	$(window).bind('storage', function(e) {
+		location.reload(true);
+
+		GenerateRows();
+	});
+
+	$(".rowChb").live("change", function() {
+		if($(this).is(":checked")) {
+			$("#btnDeleteAll").fadeIn();
+		}
+
+		if($(".rowChb:checked").length == 0) {
+			$("#btnDeleteAll").fadeOut();
+		}
+	});
+
+	function GenerateRows() {
+		$("#dvList > tbody").empty();
+
+		allCheckins = JSON.parse(localStorage["checkins"]);
+
+		allCheckins.forEach(function(checkin) {
+
+			var url = checkin.url;
+
+			if(checkin.url.indexOf("amazon.") != -1) {
+				url = AppendAmazonTag(checkin.url);
+			}
+
+			$("#dvList > tbody").append("<tr id='item_" + checkin.id + "'><td><input type='checkbox' class='rowChb' id='" + checkin.id + "' /></td><td><img src='" + checkin.favicon + "' width='16' height='16' /></td><td><a href='" + url + "' onClick='recordOutboundLink(this, \"Outbound Links\", \"" + url + "\");return false;'>" + checkin.title.substring(0, 60) + "..." + "</a></td><td>" + CurrencySign() + "</td><td class='price'>" + checkin.price + "</td><td><a href='" + url + "' onClick='recordOutboundLink(this, \"Outbound Links\", \"" + url + "\");return false;' class='btn btn-success'><i class='icon-shopping-cart icon-white'></i></a></td><td><a href='#' class='btn btn-small btn-danger' onClick='DeleteItem(id, " + "\"" + checkin.id + "\"" + ");'><i class='icon-trash icon-white'></i></a></td><td><a href='https://twitter.com/share' class='twitter-share-button' data-url='" + url + "' data-text='Check out this item I saved using ShopMarks by @pgdev' data-related='pgdev' data-lang='en' data-count='none'>Tweet</a></td><td><div class='fb-like' data-href='" + url + "' data-width='50' data-send='false' data-layout='button_count' data-show-faces='true'></div></td></tr>");
+			totalPrice = parseFloat(totalPrice) + parseFloat(checkin.price);
+
+		});
+
+		Update();
+	}
+
+	function CurrencySign() {
+		var sign;
+
+		if(localStorage["base_currency"] == "GBP") {
+			sign = "\u00A3";
+			return sign;
+		}
+
+		if(localStorage["base_currency"] == "USD") {
+			sign = "\u0024";
+			return sign;
+		}
+
+		if(localStorage["base_currency"] == "EUR") {
+			sign = "\u20AC";
+			return sign;
+		}
+	}
+
+
+	$("#dvTotal").html(CurrencySign() + parseFloat(totalPrice).toFixed(2));
+
+	function DeleteItem(key, value) {
+		var json = JSON.parse(localStorage["checkins"]);
+		for( i = 0; i < json.length; i++) {
+			if(json[i].id == value) {
+				json.splice(i, 1);
+
+				$("#item_" + value).remove();
+
+				Update();
+			}
+		}
+
+		localStorage["checkins"] = JSON.stringify(json);
+	}
+
+	function DeleteSelected() {
+		$(".rowChb:checked").each(function(i) {
+			DeleteItem("id", $(this).attr("id"));
+		});
+	}
+
+	function Update() {
+		var newTotalPrice = 0;
+
+		if($(".rowChb:checked").length == 0) {
+			$("#btnDeleteAll").fadeOut();
+		}
+
+		$(".price").each(function() {
+			newTotalPrice = parseFloat(newTotalPrice) + parseFloat($(this).html());
+		});
+
+		$("#dvTotal").html(CurrencySign() + parseFloat(newTotalPrice).toFixed(2));
+	}
+
+	function AppendAmazonTag(url) {
+		url = url + "&tag=mandadesig-21";
+
+		return url;
+	}
+
+	function BuyAll() {
+		allCheckins.forEach(function(checkin) {
+			var url = checkin.url;
+
+			if(checkin.url.indexOf("amazon.") != -1) {
+				url = AppendAmazonTag(checkin.url);
+			}
+
+			chrome.tabs.create({
+				"url" : url
+			}, function(tab) {
+
+			});
+		});
+	}! function(d, s, id) {
+		var js, fjs = d.getElementsByTagName(s)[0];
+		if(!d.getElementById(id)) {
+			js = d.createElement(s);
+			js.id = id;
+			js.src = "http://platform.twitter.com/widgets.js";
+			fjs.parentNode.insertBefore(js, fjs);
+		}
+	}(document, "script", "twitter-wjs"); ( function(d, s, id) {
+			var js, fjs = d.getElementsByTagName(s)[0];
+			if(d.getElementById(id))
+				return;
+			js = d.createElement(s);
+			js.id = id;
+			js.src = "http://connect.facebook.net/en_GB/all.js#xfbml=1&appId=216570145051885";
+			fjs.parentNode.insertBefore(js, fjs);
+		}(document, 'script', 'facebook-jssdk'));
+</script>
